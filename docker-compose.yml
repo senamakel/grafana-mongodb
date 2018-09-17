@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUX_USERNAME=USERNAME_GOES_HERE
+      - INFLUX_PASSWORD=PASSWORD_GOES_HERE
+      - INFLUXDB_DATA_ENGINE=tsm1
+      - INFLUXDB_REPORTING_DISABLED=false
+    volumes:
+      - influxdb:/var/lib/influxdb
+    logging:
+      driver: none
+
+  influxdb_telegraf:
+    image: telegraf:latest
+    links:
+      - influxdb
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    logging:
+      driver: none
+
+
+  influxdb_grafana:
+    build:
+      context: .
+      dockerfile: Grafana-Mongo.Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana:/var/lib/grafana
+    links:
+      - influxdb
+    # logging:
+    #   driver: none
+
+
+volumes:
+  grafana:
+  influxdb:
